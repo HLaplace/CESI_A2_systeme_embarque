@@ -1,0 +1,49 @@
+#---------------------------------------------------#
+# gestion de la version du fichier
+for line in $(cat var.txt);do 
+let "total= $line + 1 "
+done
+echo "Version : $total"
+rm var.txt
+echo "$total" >> var.txt
+
+#---------------------------------------------------#
+file_c_name="main.c"
+#---------------------------------------------------#
+echo "Lancement compilateur gcc bash"
+
+cd ../main/
+
+programme_name+=version
+programme_name+=$total
+programme_name+=$file_c_name
+programme_name+=PROG
+
+#echo $programme_name
+
+gcc $file_c_name -o $programme_name
+
+echo "compilation..."
+echo "creation executable"
+echo "programme :"
+echo " "
+./$programme_name
+echo " "
+echo "execution fichier termine"
+#echo "compilation reussi avec succes"
+
+#---------------------------------------------------#
+dossier_name="main_pro_"
+dossier_name+=$total
+echo "sauvegarde dans :"$dossier_name
+
+mkdir $dossier_name
+
+cp $file_c_name ./$dossier_name
+#mv $file_c_name ./$dossier_name/
+mv $programme_name ./$dossier_name/
+#---------------------------------------------------#
+
+
+
+

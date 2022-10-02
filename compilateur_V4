@@ -1,0 +1,143 @@
+#---------------------------------------------------#
+# Compilateur version 3
+#---------------------------------------------------#
+# declaration des variables
+path="/home/cesi/Desktop/ScriptArduino"
+mcu="atmega328p" # arduino uno
+foldername="$(basename $PWD)" # ScriptArduino_mathieu
+
+#---------------------------------------------------#
+
+# gestion de la version du fichier on recupere la valeur de la variable dans la fichier var.txt
+
+for line in $(cat var.txt);do 
+let "total= $line + 1 "
+done
+echo "Version : $total"
+rm var.txt
+echo "$total" >> var.txt
+
+#---------------------------------------------------#
+echo "Lancement compilateur gcc bash"
+
+# Check si le dossier de travail existe
+if [ ! -d $path ] 
+then
+    echo "Erreur : Le dossier n'existe pas"
+    exit
+fi
+
+cd $path
+
+# Check si le dossier .tpm existe.
+# Si il n'existe pas : création du dossier
+# Sinon suppression du contenue 
+
+if [ ! -d ".tpm" ]
+then
+    mkdir .tpm
+else
+    rm -rf .tpm/*
+fi
+
+# Check si le dossier build existe.
+# Si il n'existe pas : création du dossier
+# Sinon suppression du contenue 
+
+if [ ! -d "build" ]
+then
+    mkdir build
+else    
+    rm -rf build/*
+fi
+
+# Compile et assemble tout les fichiers qui ont l'extension .c en .o
+for i in *.c;do
+    [ -f "$i" ] || break
+    avr-gcc -c -DF_CPU=20000000UL -Os -mmcu=$mcu $i -o .tpm/${i%.*}.o
+    cFiles="$cFiles $i"
+
+done
+
+# Création des liens et stockage du programme dans le dossier build
+avr-gcc -DF_CPU=20000000UL -mmcu=$mcu $cFiles -o build/$foldername 2> /dev/null
+
+# On genre ici le nom des fichiers et des dossier crées
+programme_name+=$foldername
+programme_name+=_version_
+programme_name+=$total
+
+folder_name+=$foldername
+folder_name+=_folder_version_
+folder_name+=$total
+
+# Création d'un fichier exécutable en hexadécimal (.hex)
+echo "compilation ..."
+avr-objcopy -O ihex -R .eeprom build/$foldername build/$programme_name.hex
+
+#---------------------------------------------------#
+# partie versionning
+
+# Check si le dossier Archive existe.
+# Si il n'existe pas : création du dossier
+if [ ! -d $path/Archive/ ] 
+then
+    mkdir Archive
+    exit
+fi
+
+cd $path/Archive/
+
+mkdir $folder_name
+echo creation : $folder_name
+
+mv $path/build/$programme_name.hex $path/Archive/$folder_name 
+echo deplacement : $programme_name.hex
+
+rm $path/build/ScriptArduino
+echo suppression ScriptArduino
+for i in $cFiles;do
+    echo deplacement : $i
+    cp $path/$i $path/Archive/$folder_name 
+done
+
+#---------------------------------------------------#
+# Téléversement dans l'arduino
+
+echo "Voulez vous téléverser le programme ? [oui/non] "
+read -r wantUpload
+
+# Check si l'utilisateur souhaite téléverser le programme
+if [[ $wantUpload == "oui" ]]
+then
+    echo "Quel est votre programme ? Defaut : arduino"
+    read prgm
+
+    # Check si le type de programme par defaut doit être utilisé
+    if [[ $prgm == "defaut" ]]
+    then
+        prgm="arduino"
+    fi
+
+    echo "Quel est votre port ? Defaut : /dev/ttyACM0"
+    read port
+
+    # Check si le port par defaut doit être utilisé
+    if [[ $port == "defaut" ]]
+    then
+        port="/dev/ttyACM0"
+    fi
+
+    printf "Initialisation du téléversement... \n"
+    # Lancement de téléversement
+    avrdude -F -V -c $prgm -p $mcu -P $port -b 115200 -U flash:w:$path/Archive/$folder_name/$programme_name.hex
+    tar -czvf $folder_name.tar.gz ./$folder_name 
+    rm -r ./$folder_name 
+    # tar -xzvf $folder_name.tar.gz # commande pour decompresser le dossier
+        
+fi
+exit
+
+
+
+

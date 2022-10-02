@@ -1,0 +1,15 @@
+echo "Lancement compilateur gcc bash"
+
+echo "dans le dossier"
+
+cd ./Desktop/main/
+
+gcc main.c -o programme
+
+echo "compilation..."
+echo "creation executable"
+
+./programme
+echo " "
+echo "execution fichier"
+echo "compilation reussi avec succes"
