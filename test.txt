@@ -1,6 +1,0 @@
-; added for avr-debugger
-build_type = debug
-debug_tool = avr-stub
-debug_port = /dev/ttyACM0
-lib_deps = jdolinay/avr-debugger@^1.4
-debug_build_flags = -Og –g2 –DDEBUG –v ; -DAVR8_BREAKPOINT_MODE=1
