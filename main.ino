@@ -18,25 +18,23 @@ int BME_value(int val);
 
 void setup() {
  Serial.begin(9600);
- int tab[4];
  
- tab[0] = BME_value(1); // temperature
- display_screen(tab[0] ) ;
+ display_screen(String("temperature ") + BME_value(1) + String("c"));
+ write_SD("test.txt", BME_value(1));
  delay(1000);
 
- tab[1] = BME_value(2); // pression
- display_screen(tab[1]) ;
+ display_screen(String("pression ") + BME_value(2) + String(" hpa")) ;
+ write_SD("test.txt", BME_value(2));
  delay(1000);
 
- tab[2] = BME_value(3); // humidite
- display_screen(tab[2]) ;
+ display_screen(String("hygrometrie ") + BME_value(3) + String("%")) ;
+ write_SD("test.txt", BME_value(3));
  delay(1000);
 
- tab[3] = retour_luminosite(); // luminosité
- display_screen(tab[3]) ;
+ display_screen(String("luminosite ") + retour_luminosite() + String("lx")) ;
+ write_SD("test.txt", retour_luminosite());
  delay(1000);
 
- write_SD("test.txt", tab);
  read_SD("test.txt");
 }
 
@@ -54,7 +52,7 @@ void write_SD(String file_name, int writing_text){
   myFile = SD.open(file_name, FILE_WRITE);
    if (myFile) {
     Serial.print("Writing to test.txt...");
-    myFile.print(writing_text);
+    myFile.println(writing_text);
     myFile.close();
     Serial.println("done.");
   } else {
@@ -76,19 +74,15 @@ void read_SD(String file_name){
   }
 }
 /////////////////////////////////////////////////////////////////////
-void display_screen(int texte){
+void display_screen(String texte){
   lcd.begin( 16, 2 ) ;
   lcd.setCursor(0,0);
   lcd.print(texte);
-  //delay(5000);
-  lcd.clear();
+  //lcd.clear();
 }
 /////////////////////////////////////////////////////////////////////
 int retour_luminosite(){
-  int var_retour_lumi = analogRead(A0);
-   //Serial.print("Light = ");
-   //Serial.println(light);
-   return var_retour_lumi;
+   return analogRead(A0);
   }
 /////////////////////////////////////////////////////////////////////
 int BME_value(int val){
